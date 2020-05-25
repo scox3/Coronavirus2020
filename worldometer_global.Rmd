@@ -1,11 +1,14 @@
 ---
 title: "Worldometer Global Covid data viz"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 ```
+
 
 ```{r init}
 library(readr)

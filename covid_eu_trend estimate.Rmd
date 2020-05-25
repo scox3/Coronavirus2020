@@ -1,7 +1,15 @@
 ---
 title: "Covid new cases trend esimates for some EU countres"
-output: html_notebook
+output:
+  word_document: default
+  html_document:
+    df_print: paged
 ---
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
+
+```
 
 ```{r init}
 library(readr)

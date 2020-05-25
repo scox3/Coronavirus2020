@@ -3,8 +3,9 @@ title: "Worldometer US Covid by state"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
+
 ```
 
 ```{r init}

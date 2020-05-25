@@ -1,9 +1,16 @@
 ---
-title: "R Notebook"
+title: "Correlations in US Covid daily variables"
 output:
   html_document:
     df_print: paged
+  pdf_document: default
+  word_document: default
 ---
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
+
+```
+
 
 ```{r init}
 library(readr)
@@ -15,6 +22,7 @@ library(stringr)
 library(XML)
 library(RCurl)
 
+library(lubridate)
 ```
 
 ```{r}
@@ -32,11 +40,12 @@ setorder(us_daily, "date")
 #Fill NA
 cols1 <- colnames(us_daily)
 cols.numeric <- cols1[ unlist( lapply( us_daily[ 1 ], is.numeric))]
-map( cols.numeric, function(x) { us_daily[ , c(x) := na.fill(get(x), fill=0)]; x}) 
+for( col.name in cols.numeric) {
+  us_daily[ , c(col.name) := ifelse(is.na(get(col.name)), 0, get(col.name))]
+}
 
-us_daily_summary <- us_daily[ , map( cols.numeric, function(x) sum(get(x))), by=date ]
+us_daily_summary <- us_daily[ , lapply( cols.numeric, function(x) sum(get(x))), by=date ]
 colnames(us_daily_summary)[2:(dim(us_daily_summary)[2])] <- cols.numeric
-
 
 ```
 
@@ -69,7 +78,7 @@ data1 <- us_daily_summary[date>make_date(2020,03,13)]
 ```
 
 ```{r}
-ggplot( data1, aes(x=date, y=deathIncrease/(shift(positiveIncrease, 7, type="lead")+0.001), color="D"))+ geom_path() + ggtitle("US Ratio Death (7d shifted)/New Cases") + geom_s
+ggplot( data1, aes(x=date, y=deathIncrease/(shift(positiveIncrease, 7, type="lead")+0.001), color="D"))+ geom_path() + ggtitle("US Ratio Death (7d shifted)/New Cases") + geom_smooth()
 ```
 
 
@@ -83,37 +92,4 @@ summary( lmdlag)
 anova(lmdlag)
 
 ```
-
-
-
-Отношение для разных лагов
-```{r}
-
-
-ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 5)))+ geom_path()
-
-ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 7)))+ geom_path()
-
-ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 10)))+ geom_path()
-
-ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 14)))+ geom_path()
-
-
-```
-
-
-
-
-```{r}
-x <- seq(1, 10)
-y <- unlist( lapply( x, function(x) { return( mean(data1[date>make_date( 2020, 03, 10), mean(deathIncrease/(shift(positiveIncrease, x)+0.001), na.rm=TRUE)]))}))
-
-df1 <- data.table( dlag= x, rat = y)
-
-ggplot( df1, aes(dlag, rat))+geom_path()+geom_path()+
-  ggtitle("Avaraged new deaths/new cases ratio vs lag")+xlab("Lag, days")+ylab("Ratio")
-
-
-```
-
 
