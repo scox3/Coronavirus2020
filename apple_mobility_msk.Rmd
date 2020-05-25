@@ -1,0 +1,41 @@
+---
+title: "Apple mobility"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r init}
+library(readr)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(stringr)
+
+library(XML)
+library(RCurl)
+
+```
+
+
+```{r}
+library(readr)
+applemobilitytrends_2020_04_15 <- read_csv("data/applemobilitytrends-2020-04-15.csv")
+applemobilitytrends_2020_04_15 <- as.data.table( applemobilitytrends_2020_04_15)
+
+applemobilitytrends_2020_04_15 <- applemobilitytrends_2020_04_15[ region == "Moscow"]
+
+apple_msk <- data.table( date=names(applemobilitytrends_2020_04_15)[4:(dim(applemobilitytrends_2020_04_15)[2])], v1 = as.numeric(unlist(applemobilitytrends_2020_04_15[1,])[-c(1:3)]), 
+v2 = as.numeric(unlist(applemobilitytrends_2020_04_15[2,])[-c(1:3)]))
+
+names( apple_msk )[2:3] <- c( unlist(applemobilitytrends_2020_04_15[1,])[3],
+                              unlist(applemobilitytrends_2020_04_15[2,])[3])
+
+```
+
+
+```{r}
+ggplot(apple_msk, aes(x=as.Date(date), y=driving, color="Driving"))+geom_line(size=1)+geom_line(aes(y=walking, color="Walking"),size=1) + ggtitle("Apple Mobility Trends Report - Moscow")+xlab("Date")+ylab("Mobility")
+```
+

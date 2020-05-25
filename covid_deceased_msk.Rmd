@@ -1,0 +1,77 @@
+---
+title: "Estimate of COVID related deceased in Moscow 2020-04"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#Смертность в Москве и короновирус (апрель 2020)
+```{r init}
+#Basic libraries
+library(readr)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(stringr)
+```
+
+##Данные
+[Источник данных](https://data.mos.ru/opendata/7704111479-dinamika-registratsii-aktov-grajdanskogo-sostoyaniya?pageNumber=13&versionNumber=3&releaseNumber=42)
+```{r}
+data_dd_msk <- read_excel("data/data-6267-2020-05-08.xlsx")
+data_dd_msk <- as.data.table(data_dd_msk)
+data_dd_msk[ , wmonth := .I ]
+data_dd_msk[ , StateRegistrationOfDeath := as.numeric(StateRegistrationOfDeath)]
+```
+
+##График смертей
+```{r}
+ggplot( data_dd_msk, aes(x=wmonth, y=StateRegistrationOfDeath))+geom_path()+xlab("Month since 2010.01.01")+ylab("N. deaths in Moscow")+ggtitle("Registered deaths in Moscow")
+```
+
+##Декомпозиция на тренд, сезонную и случайную компоненты 
+STL производит аддитивную декомпозицию, для получения мультипликативной декомпозиции используем логарифмы.
+```{r}
+stl1 <- stl(ts(data_dd_msk[,log(StateRegistrationOfDeath)], frequency=12, start=c(2010,1,1)), s.window=12)
+plot(stl1)
+```
+
+
+Рисуем остатки от декомпозиции.  
+```{r}
+sd1 <- sd(stl1$time.series[, 3])
+plot(stl1$time.series[, 3], xlab="Date", ylab="Residual from expected (log)")
+abline(h=0, lty=2)
+abline(h=sd1, lty=3)
+abline(h=-sd1, lty=3)
+title("Deaths in Moscow, residual after trend and seasonal component\nbeing removed (multiplicative model)")
+
+```
+
+
+Оцениваем уровень избыточых смертей в апреле 2020 года (последняя точка данных). 
+```{r}
+sprintf("Deviation from expected: %f", exp(last(stl1$time.series[, 1]+stl1$time.series[, 2]))* (exp(last(stl1$time.series[, 3]))-1))
+sprintf("Above 1 sd: %f", exp(last(stl1$time.series[, 1]+stl1$time.series[, 2]))* (exp(last(stl1$time.series[, 3])-sd1)-1))
+```
+
+Оцениваем уровень избыточых смертей для смога смога 2010м (первый пик).
+```{r}
+imax <- which.max(stl1$time.series[1:24, 3])
+sprintf("Max peak position: %d", imax)
+```
+
+```{r}
+sprintf("Deviation from expected: %f", exp(stl1$time.series[imax, 1]+stl1$time.series[imax, 2])* (exp(stl1$time.series[imax, 3])-1))
+sprintf("Above 1 sd: %f", exp(stl1$time.series[imax, 1]+stl1$time.series[imax, 2])* (exp(stl1$time.series[imax, 3]-sd1)-1))
+
+```
+
+
+

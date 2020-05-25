@@ -1,0 +1,100 @@
+---
+title: "Worldometer US Covid by state"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r init}
+library(readr)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(stringr)
+
+library(XML)
+library(RCurl)
+
+```
+
+
+## US by state
+
+```{r}
+read_worldometer <- function( url, world=FALSE, skip_left = 1, skip_right =1) {
+
+  #The only reliable way
+  doc <- getURL(url)
+  
+  doc_tables <- readHTMLTable(doc, stringsAsFactors = FALSE) #, elFun = tryAsInteger)
+  
+  if( world ) {
+    df1 <- apply( doc_tables$main_table_countries_today, c(1,2), as.character)
+  } else{
+    df1 <- apply( doc_tables$usa_table_countries_today, c(1,2), as.character)
+  }
+
+  df1 <-  apply( df1, c(2), as.character )
+
+#  names(df1) <- df1[1,]
+#  df1 <-df1[-1, ]
+  
+  df1 <- apply( df1, c(1,2), function(x){ str_replace_all(x, ",", "")})
+#View(df1)
+#  df_latest[,-1] <-  apply( df_latest[,-1], c(2), as.integer )
+
+  df1 <- as.data.table(df1)
+  changeCols <- colnames(df1)[(skip_left+1):(dim(df1)[2]-skip_right)]
+#print(changeCols)
+
+  df1[, (changeCols):= lapply(.SD, function(x){ str_replace_all(x, "[,]", "")}),  .SDcols = changeCols]
+  
+#  doc_latest[ <- apply( df1, c(1,2), function(x){ gsub("[,]", "",x)})
+
+  df1[, (changeCols):= lapply(.SD, function(x){ as.numeric(str_replace_all(x, "[^[0-9]]", ""))}),  .SDcols = changeCols]
+  
+  names(df1) <-  sapply(  names(df1), function(x) { str_replace_all(x, "[^[:alnum:]]", ".")}, USE.NAMES = FALSE)
+
+  return(df1)  
+}
+```
+
+
+```{r}
+df_st_latest <- read_worldometer(  "https://www.worldometers.info/coronavirus/country/us/", world=FALSE, 1, 1)
+```
+
+```{r}
+save(df_st_latest, file=paste0("worldometer_us_state_", Sys.Date(), ".RData"))
+plot_date <- Sys.Date()
+  
+# save(df_latest, file="20200406_worldinformer.RData")
+```
+
+```{r}
+ggplot(df_st_latest, aes(x=TotalCases, y=TotalDeaths, color="Data"))+geom_point()+geom_text(data=df_st_latest[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths, label=USAState ), hjust=-0.1, size=3)+geom_abline(aes(intercept=0, slope=df_st_latest[USAState=="New York", (TotalDeaths)/TotalCases])) +ggtitle("US COVID-19 Deaths vs Total Cases")
+
+#+geom_abline(aes(intercept=0, slope=df_latest[Country.Other=="Italy", (TotalDeaths+Serious.Critical)/TotalCases])) ++ggtitle("Dangerous cases vs total number of cases 06.04.2020")+ guides(colour=guide_legend(title=NULL))
+
+```
+
+
+
+```{r}
+ggplot(df_st_latest, aes(x=TotalCases, y=TotalDeaths, color="Data"))+geom_point()+geom_text(data=df_st_latest[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths, label=USAState ), hjust=-0.1, size=3)+geom_abline(aes(intercept=0, slope=df_st_latest[USAState=="New York",(TotalDeaths)/TotalCases])) +ggtitle("US COVID-19 Deaths vs Total Cases")+scale_x_log10()+scale_y_log10()
+
+```
+
+
+```{r}
+ggplot(df_st_latest[TotalCases>5000], aes(x=reorder(USAState, -(TotalDeaths/TotalCases)), y=TotalDeaths/TotalCases, fill="CFR"))+geom_col()+ggtitle("US COVID-19 Tot.Deaths/Tot.cases by state")+ theme(axis.text.x = element_text(angle = 90))+ guides(fill=guide_legend(title=NULL))+xlab("State")
+
+```
+
+```{r}
+ggplot(df_st_latest[TotalCases>5000], aes(x=reorder(USAState, -(TotalCases/TotalTests)), y=TotalCases/TotalTests, fill="Tot.Cases /Total Tests"))+geom_col()+ggtitle("US COVID-19 Tot. Cases/Tot. tests by state")+ theme(axis.text.x = element_text(angle = 90))+ guides(fill=guide_legend(title=NULL))+xlab("State")
+
+```
+

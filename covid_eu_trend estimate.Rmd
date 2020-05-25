@@ -1,0 +1,147 @@
+---
+title: "Covid new cases trend esimates for some EU countres"
+output: html_notebook
+---
+
+```{r init}
+library(readr)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(stringr)
+
+library(XML)
+library(RCurl)
+library(forecast)
+
+```
+
+
+##Germany
+```{r}
+#  doc <- getBinaryURL("https://covid.ourworldindata.org/data/owid-covid-data.csv")
+
+owid_covid_data <- read_csv("data/owid-covid-data.csv")
+owid_covid_data <- as.data.table(owid_covid_data)
+
+```
+```{r}
+ggplot( owid_covid_data[ location=="Germany"], aes(x=date,y=new_cases))+geom_point()+geom_path()+scale_y_log10()+geom_smooth()+ggtitle("New daily COVID cases in Germany")
+
+```
+
+```{r}
+
+ggplot( owid_covid_data[ location=="Germany" & date >= as.Date("2020/04/01")], aes(x=date,y=new_cases))+geom_point()+geom_path()+geom_smooth()+ggtitle("New daily COVID cases in Germany")+ ylim(0, 10000)
+
+```
+
+
+
+
+
+```{r}
+lm_germany <- lm( new_cases ~ I( date - as.Date("2020/04/01")), data=owid_covid_data[ location=="Germany" & date >= as.Date("2020/04/01")])
+```
+
+```{r}
+summary(lm_germany)
+```
+
+
+```{r}
+print( paste0( "Days left: ",  - - last(predict(lm_germany))/coef(lm_germany)[2]))
+```
+
+
+```{r}
+pacf(log(owid_covid_data[ location=="Germany" & date >= as.Date("2020/04/01")]$new_cases))
+```
+
+
+##Spain
+```{r}
+ggplot( owid_covid_data[ location=="Spain"], aes(x=date,y=new_cases))+geom_point()+geom_path()+scale_y_log10()+geom_smooth()+ggtitle("New daily COVID cases in Spain")
+
+```
+
+```{r}
+
+ggplot( owid_covid_data[ location=="Spain" & date >= as.Date("2020/04/01")], aes(x=date,y=new_cases))+geom_point()+geom_path()+geom_smooth()+ggtitle("New daily COVID cases in Spain")+ ylim(0, 10000)
+
+```
+
+
+```{r}
+acf( owid_covid_data[ location=="Spain" & date >= as.Date("2020/04/01")]$new_cases)
+```
+
+
+
+```{r}
+pacf( log( owid_covid_data[ location=="Spain" & date >= as.Date("2020/04/01")]$new_cases))
+
+```
+
+
+
+
+```{r}
+lm_spain <- lm( new_cases ~ I( date - as.Date("2020/04/01")), data=owid_covid_data[ location=="Spain" & date >= as.Date("2020/04/01")])
+```
+
+```{r}
+summary(lm_spain)
+```
+
+
+```{r}
+print( paste0( "Days left: ",  - last(predict(lm_spain)) /coef(lm_spain)[2]))
+```
+
+
+#Italy
+
+```{r}
+
+ggplot( owid_covid_data[ location=="Italy" & date >= as.Date("2020/04/01")], aes(x=date,y=new_cases))+geom_point()+geom_path()+geom_smooth()+ggtitle("New daily COVID cases in Italy")+ ylim(0, 5000)
+
+```
+
+```{r}
+lm_italy <- lm( new_cases ~ I( date - as.Date("2020/04/01")), data=owid_covid_data[ location=="Italy" & date >= as.Date("2020/04/01")])
+```
+
+```{r}
+summary(lm_italy)
+```
+
+
+```{r}
+print( paste0( "Days left: ",  - last(predict(lm_italy)) /coef(lm_italy)[2]))
+```
+
+
+
+
+#Sweden
+
+```{r}
+
+ggplot( owid_covid_data[ location=="Sweden" & date >= as.Date("2020/04/01")], aes(x=date,y=new_cases))+geom_point()+geom_path()+geom_smooth()+ggtitle("New daily COVID cases in Sweden")+ ylim(0, 1000)
+
+```
+
+```{r}
+lm_sweden <- lm( new_cases ~ I( date - as.Date("2020/04/01")), data=owid_covid_data[ location=="Sweden" & date >= as.Date("2020/04/01")])
+```
+
+```{r}
+summary(lm_sweden)
+```
+
+
+```{r}
+print( paste0( "Days left: ",  - last(predict(lm_sweden)) /coef(lm_sweden)[2]))
+```
+

@@ -1,0 +1,119 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r init}
+library(readr)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(stringr)
+
+library(XML)
+library(RCurl)
+
+```
+
+```{r}
+# https://covidtracking.com/api
+library(readr)
+us_daily <- read_csv("data/us-daily_20200525.csv",
+                      col_types = cols(date = col_date(format = "%Y%m%d")))
+
+# us_daily <- read_csv("data/us-daily.csv", col_types = cols(date = 
+#                                                         col_datetime(format = "%m/%d/%Y %H:%M")))
+
+us_daily <- as.data.table(us_daily )
+setorder(us_daily, "date")
+
+#Fill NA
+cols1 <- colnames(us_daily)
+cols.numeric <- cols1[ unlist( lapply( us_daily[ 1 ], is.numeric))]
+map( cols.numeric, function(x) { us_daily[ , c(x) := na.fill(get(x), fill=0)]; x}) 
+
+us_daily_summary <- us_daily[ , map( cols.numeric, function(x) sum(get(x))), by=date ]
+colnames(us_daily_summary)[2:(dim(us_daily_summary)[2])] <- cols.numeric
+
+
+```
+
+
+```{r}
+ggplot( us_daily_summary, aes(x=date, y=log10(deathIncrease), color="log(D)"))+
+          geom_path() +
+          geom_path(aes(y=log10(positiveIncrease), color="log(PosInc)"))+
+  ggtitle("New deaths USA All")
+```
+
+```{r}
+ggplot( us_daily_summary, aes(x=date, y=shift( log10(deathIncrease)+1.2, 7, type="lead"), color="log(D)+1.2, \nshifted 7 days backward"))+
+          geom_path() +
+          geom_path(aes(y=log10(positiveIncrease), color="log(PosInc)"))+
+  ggtitle( "US. Coronovirus deaths vs scaled positive test resuts")
+
+```
+
+```{r}
+ggplot( us_daily_summary, aes(x=date, y=(positive- shift(positive, 7))/(totalTestResults- shift(totalTestResults, 7))))+
+          geom_path(colour="red") + ylab("Share of positive results")+
+  ggtitle( "US. Share of positive tests results (7d moving average)")
+
+```
+
+```{r}
+data1 <- us_daily_summary[date>make_date(2020,03,13)]
+
+```
+
+```{r}
+ggplot( data1, aes(x=date, y=deathIncrease/(shift(positiveIncrease, 7, type="lead")+0.001), color="D"))+ geom_path() + ggtitle("US Ratio Death (7d shifted)/New Cases") + geom_s
+```
+
+
+Определение лага
+```{r}
+lmdlag <- lm(deathIncrease ~ 0 + shift( positiveIncrease,5) + 
+               shift( positiveIncrease,7)+ shift(positiveIncrease, 10), data=data1)
+
+summary( lmdlag)
+
+anova(lmdlag)
+
+```
+
+
+
+Отношение для разных лагов
+```{r}
+
+
+ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 5)))+ geom_path()
+
+ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 7)))+ geom_path()
+
+ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 10)))+ geom_path()
+
+ggplot( data=data1, aes(x=c(1:length(positiveIncrease)), y= deathIncrease/ shift( positiveIncrease, 14)))+ geom_path()
+
+
+```
+
+
+
+
+```{r}
+x <- seq(1, 10)
+y <- unlist( lapply( x, function(x) { return( mean(data1[date>make_date( 2020, 03, 10), mean(deathIncrease/(shift(positiveIncrease, x)+0.001), na.rm=TRUE)]))}))
+
+df1 <- data.table( dlag= x, rat = y)
+
+ggplot( df1, aes(dlag, rat))+geom_path()+geom_path()+
+  ggtitle("Avaraged new deaths/new cases ratio vs lag")+xlab("Lag, days")+ylab("Ratio")
+
+
+```
+
+
