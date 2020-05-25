@@ -1,5 +1,5 @@
 ---
-title: "Worldometer Global Covid data viz"
+title: "Gloal Covid testing efficiency comparison (worldometer data)"
 output:
   word_document: default
   html_document: default
@@ -29,11 +29,13 @@ Covid_global_0330 <- read_excel("data/Covid_global_0330.xlsx")
 Covid_global_0330 <- as.data.table(Covid_global_0330)
 ```
 
+
+В Германии, США, Китае тестирвоание, очевидно, выявлет больше случаев болезни, и, соответственно, меньшую долю тяжелых случаев. 
 ```{r}
 names(Covid_global_0330)<-str_replace_all(names(Covid_global_0330), c(" " = "." , "," = "" ))
 data2 <- Covid_global_0330[ TotalCases > 5000 & Country.Other != "World" ]
 
-ggplot(data2, aes(x=TotalCases, y=TotalDeaths+SeriousCritical, color="Data"))+geom_point() +geom_abline(aes(intercept=0, slope=data2[Country.Other=="USA", (TotalDeaths+SeriousCritical)/TotalCases]))+geom_abline(aes(intercept=0, slope=data2[Country.Other=="Italy", (TotalDeaths+SeriousCritical)/TotalCases])) +geom_text(data=data2[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths+SeriousCritical, label=Country.Other ), hjust=-0.1, size=4)+ggtitle("Dangerous cases vs total number of cases 30.03.2020")+ guides(colour=guide_legend(title=NULL))
+ggplot(data2, aes(x=TotalCases, y=TotalDeaths+SeriousCritical, color="Data"))+geom_point() +geom_abline(aes(intercept=0, slope=data2[Country.Other=="USA", (TotalDeaths+SeriousCritical)/TotalCases]))+geom_abline(aes(intercept=0, slope=data2[Country.Other=="Italy", (TotalDeaths+SeriousCritical)/TotalCases])) +geom_text(data=data2[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths+SeriousCritical, label=Country.Other ), hjust=-0.1, size=4)+ggtitle("Cases with complications (D+C+S) vs total number of cases 30.03.2020")+ guides(colour=guide_legend(title=NULL))
 ```
 
 ```{r}
@@ -138,7 +140,7 @@ plot_world( df_latest[ i1:i2], Sys.Date())
 ```
 
 ```{r}
-ggplot(df_latest[i1:i2], aes(x=TotalCases, y=TotalDeaths+Serious.Critical, color="Data"))+geom_point()+geom_text(data=df_latest[TotalCases>5000], aes(x=TotalCases,y=TotalDeaths+Serious.Critical, label=Country.Other ), hjust=-0.1, size=3)+ggtitle("Complicated cases vs total number of cases 06.04.2020")+ guides(colour=guide_legend(title=NULL))+scale_x_log10()+scale_y_log10()
+ggplot(df_latest[i1:i2], aes(x=TotalCases, y=TotalDeaths+Serious.Critical, color="Data"))+geom_point()+geom_text(data=df_latest[TotalCases>5000], aes(x=TotalCases,y=TotalDeaths+Serious.Critical, label=Country.Other ), hjust=-0.1, size=3)+ggtitle("Caases with complications vs total number of cases 06.04.2020")+ guides(colour=guide_legend(title=NULL))+scale_x_log10()+scale_y_log10()
 
 ```
 
