@@ -76,6 +76,8 @@ plot_date <- Sys.Date()
 # save(df_latest, file="20200406_worldinformer.RData")
 ```
 
+
+Q: Как связана смертость от COVID с числом новых заболеваний COVID в разрезе отдельных штатов? 
 ```{r}
 ggplot(df_st_latest[USAState != "USA Total"], aes(x=TotalCases, y=TotalDeaths, color="Data"))+geom_point()+geom_text(data=df_st_latest[TotalCases>15000 & USAState != "USA Total"], aes(x=TotalCases,y=TotalDeaths, label=USAState ), hjust=-0.1, size=3)+geom_abline(aes(intercept=0, slope=df_st_latest[USAState=="New York", (TotalDeaths)/TotalCases])) +ggtitle("US COVID-19 Deaths vs Total Cases")
 
@@ -96,6 +98,7 @@ ggplot(df_st_latest[TotalCases>5000  & USAState != "USA Total"], aes(x=reorder(U
 
 ```
 
+Q: насколько эффективно проводится селекция для тестирования в разных штатах (доля положительных среди протестирвоанных)?
 ```{r}
 ggplot(df_st_latest[TotalCases>5000 &  USAState != "USA Total"], aes(x=reorder(USAState, -(TotalCases/TotalTests)), y=TotalCases/TotalTests, fill="Tot.Cases /Total Tests"))+geom_col()+ggtitle("US COVID-19 Tot. Cases/Tot. tests by state")+ theme(axis.text.x = element_text(angle = 90))+ guides(fill=guide_legend(title=NULL))+xlab("State")
 
