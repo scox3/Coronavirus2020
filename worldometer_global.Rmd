@@ -1,8 +1,8 @@
 ---
-title: "Gloal Covid testing efficiency comparison (worldometer data)"
+title: "Global Covid testing efficiency comparison (worldometer data)"
 output:
-  word_document: default
   html_document: default
+  word_document: default
 ---
 ```{r}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
@@ -23,20 +23,26 @@ library(RCurl)
 ```
 
 
-```{r}
-
-Covid_global_0330 <- read_excel("data/Covid_global_0330.xlsx")
-Covid_global_0330 <- as.data.table(Covid_global_0330)
-```
-
 
 Q: Сравнить разные страны по соотношению числа заболевших и числа осложнений от COVID-19 - это может быть показателем масштабности  проводимого тестирования (селективности процедур отбора для него). 
 
 ```{r}
+Covid_global_0330 <- read_excel("data/Covid_global_0330.xlsx")
+Covid_global_0330 <- as.data.table(Covid_global_0330)
+
 names(Covid_global_0330)<-str_replace_all(names(Covid_global_0330), c(" " = "." , "," = "" ))
 data2 <- Covid_global_0330[ TotalCases > 5000 & Country.Other != "World" ]
 
-ggplot(data2, aes(x=TotalCases, y=TotalDeaths+SeriousCritical, color="Data"))+geom_point() +geom_abline(aes(intercept=0, slope=data2[Country.Other=="USA", (TotalDeaths+SeriousCritical)/TotalCases]))+geom_abline(aes(intercept=0, slope=data2[Country.Other=="Italy", (TotalDeaths+SeriousCritical)/TotalCases])) +geom_text(data=data2[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths+SeriousCritical, label=Country.Other ), hjust=-0.1, size=4)+ggtitle("Cases with complications (D+C+S) vs total number of cases 30.03.2020")+ guides(colour=guide_legend(title=NULL))
+slope_US <- data2[Country.Other=="USA", (TotalDeaths+SeriousCritical)/TotalCases]
+slope_Italy <-  data2[Country.Other=="Italy", (TotalDeaths+SeriousCritical)/TotalCases]
+
+ggplot(data2, aes(x=TotalCases, y=TotalDeaths+SeriousCritical, color="Data"))+
+  geom_point() +
+  geom_abline(aes(intercept=0, slope=slope_US))+
+  geom_abline(aes(intercept=0, slope=slope_Italy)) +
+  geom_text(data=data2[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths+SeriousCritical, label=Country.Other ),
+            hjust=-0.1, size=4)+
+  ggtitle("Cases with complications (D+C+S) vs total number of cases 30.03.2020")+ guides(colour=guide_legend(title=NULL))
 ```
 В Германии, США, Китае тестирвоание, очевидно, выявлет больше случаев болезни, и, соответственно, меньшую долю тяжелых случаев.  
 
