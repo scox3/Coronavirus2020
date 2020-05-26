@@ -15,5 +15,6 @@ Lockdown efficiency, April trends in some EU countires  | covid_eu_trend estimat
 Apple mobility data visualisation for Moscow  | apple_mobility_msk.Rmd
 
 
-Report files on Google Drive
-[https://drive.google.com/drive/folders/17Ao7gBn4u5yctY_DsK3whxY6N7zmRO3l?usp=sharing]
+
+Reports folder contains Word and PDF-output of the scripts.
+Copy on Google Drive [https://drive.google.com/drive/folders/17Ao7gBn4u5yctY_DsK3whxY6N7zmRO3l?usp=sharing]
