@@ -2,12 +2,18 @@
 title: "Correlations in US Covid daily variables"
 output:
   word_document: default
-  pdf_document: default
+  bookdown::pdf_document2:
+    latex_engine: lualatex
+  pdf_document: 
+      latex_engine: xelatex
   html_document:
     df_print: paged
+  tufte::tufte_handout:
+    latex_engine: xelatex
 ---
-```{r}
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6.4, fig.path = "figures/")
+```{r echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, 
+                      fig.width=9, fig.height=6.4, fig.path = "figures/")
 
 ```
 
@@ -85,7 +91,10 @@ summary( lmdlag)
 anova(lmdlag)
 
 ```
-  
+
+
+   
+   
 ```{r}
 plot(resid(lmdlag), type="l")
 abline(h=0, lty=2)
@@ -99,7 +108,9 @@ anova(lmdlag.7d)
 
 ```
 
-У остатков есть явная зависимость от времени.
+У остатков есть явная зависимость от времени.  
+
+
 ```{r}
 plot(resid(lmdlag.7d), type="l")
 abline(h=0, lty=2)
