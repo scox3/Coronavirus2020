@@ -56,7 +56,7 @@ update_CovidMoscowDB <- function(CovidMoscowDB) {
   
   if( dim(rpn_covid_updates)[1] > 0 ) {
     CovidMoscowDB.1 <- rbind( CovidMoscowDB, 
-         rpn_covid_updates[num==1, .(date, newCases=val, 0, week.day = wday(date))], use.names=FALSE)
+         rpn_covid_updates[num==1, .(num, date, newCases=val, 0, week.day = wday(date))], use.names=FALSE)
     CovidMoscowDB.1[ , TotalCases := cumsum(newCases)] 
     
   } else {

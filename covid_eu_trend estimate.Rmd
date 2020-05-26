@@ -1,5 +1,5 @@
 ---
-title: "Covid new cases trend esimates for some EU countres"
+title: "Time to lift lockdown for some EU countres"
 output:
   word_document: default
   html_document:
@@ -24,6 +24,9 @@ library(forecast)
 
 ```
 
+Q: Примерно в какие даты страны Европы достигнут того минимума новых заражений, которые позволят им отменить карантинные меры?  
+
+Делаем линейные регрессии последних данных.  
 
 ##Germany
 ```{r}

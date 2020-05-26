@@ -30,13 +30,15 @@ Covid_global_0330 <- as.data.table(Covid_global_0330)
 ```
 
 
-В Германии, США, Китае тестирвоание, очевидно, выявлет больше случаев болезни, и, соответственно, меньшую долю тяжелых случаев. 
+Q: Сравнить разные страны по соотношению числа заболевших и числа осложнений от COVID-19 - это может быть показателем масштабности  проводимого тестирования (селективности процедур отбора для него). 
+
 ```{r}
 names(Covid_global_0330)<-str_replace_all(names(Covid_global_0330), c(" " = "." , "," = "" ))
 data2 <- Covid_global_0330[ TotalCases > 5000 & Country.Other != "World" ]
 
 ggplot(data2, aes(x=TotalCases, y=TotalDeaths+SeriousCritical, color="Data"))+geom_point() +geom_abline(aes(intercept=0, slope=data2[Country.Other=="USA", (TotalDeaths+SeriousCritical)/TotalCases]))+geom_abline(aes(intercept=0, slope=data2[Country.Other=="Italy", (TotalDeaths+SeriousCritical)/TotalCases])) +geom_text(data=data2[TotalCases>15000], aes(x=TotalCases,y=TotalDeaths+SeriousCritical, label=Country.Other ), hjust=-0.1, size=4)+ggtitle("Cases with complications (D+C+S) vs total number of cases 30.03.2020")+ guides(colour=guide_legend(title=NULL))
 ```
+В Германии, США, Китае тестирвоание, очевидно, выявлет больше случаев болезни, и, соответственно, меньшую долю тяжелых случаев.  
 
 ```{r}
 read_worldometer <- function( url, world=FALSE, skip_left = 1, skip_right =1) {
@@ -77,6 +79,8 @@ read_worldometer <- function( url, world=FALSE, skip_left = 1, skip_right =1) {
 }
 ```
 
+
+Апдейт картинки по последним данным.  
 ```{r}
   cached_date <- "2020406"
   from_cache <-FALSE
@@ -123,7 +127,6 @@ i2 <- dim( df_latest)[1]
 plot_world( df_latest[ i1:i2], Sys.Date())
 ```
 
-
 ```{r}
 plot_world( df_latest[ i1:i2], Sys.Date(), max1=250000)
 
@@ -146,7 +149,7 @@ ggplot(df_latest[i1:i2], aes(x=TotalCases, y=TotalDeaths+Serious.Critical, color
 
 
 
-
+Q: Влияет ли на приведенное распределение число проводимых тестов на душу населения? 
 
 ```{r}
 # names(df_latest)
@@ -163,6 +166,5 @@ ggplot(dfl1, aes(x=Tests.1M.pop/1e6, y=TestPosRatio, color="Data"))+geom_point()
 ggplot(dfl1, aes(x=Tests.1M.pop/1e6, y=`Tot.Cases.1M.pop`/1e6, color="Data"))+geom_point()+geom_text(data=dfl1, aes(x=Tests.1M.pop/1e6,y=`Tot.Cases.1M.pop`/1e6, label=Country.Other  ), hjust=-0.1, size=3)+ggtitle(paste0("Positive test share vs tests per citizen ", Sys.Date()))+ guides(colour=guide_legend(title=NULL))+xlab("Tests per citizen") + ylab("Positives per citizen")
 
 ```
-
-
+Вывод: данные выглядят достаточно хаотично, вероятно работают и другие факторы. 
 

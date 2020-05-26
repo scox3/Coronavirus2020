@@ -1,33 +1,36 @@
 ---
 title: "Correlations in US Covid daily variables"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
-  word_document: default
 ---
 ```{r}
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6, fig.path = "figures/")
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6.4, fig.path = "figures/")
 
 ```
 
 
 ```{r init}
-library(readr)
+library(tidyverse) 
+#library(readr)
+#library(ggplot2)
+#library(stringr)
+
 library(data.table)
-library(ggplot2)
 library(readxl)
-library(stringr)
 
 library(XML)
 library(RCurl)
 
 library(lubridate)
+library(readr)
+
 ```
 
 ```{r}
 # https://covidtracking.com/api
-library(readr)
 us_daily <- read_csv("data/us-daily_20200525.csv",
                       col_types = cols(date = col_date(format = "%Y%m%d")))
 
@@ -50,12 +53,17 @@ colnames(us_daily_summary)[2:(dim(us_daily_summary)[2])] <- cols.numeric
 ```
 
 
+
+Q: Каков лаг между кривой выявления новых случаев и кривой смертельных исходов?  
+
 ```{r}
 ggplot( us_daily_summary, aes(x=date, y=log10(deathIncrease), color="log(D)"))+
           geom_path() +
           geom_path(aes(y=log10(positiveIncrease), color="log(PosInc)"))+
   ggtitle("New deaths USA All")
 ```
+
+
 
 ```{r}
 ggplot( us_daily_summary, aes(x=date, y=shift( log10(deathIncrease)+1.2, 7, type="lead"), color="log(D)+1.2, \nshifted 7 days backward"))+
@@ -65,13 +73,52 @@ ggplot( us_daily_summary, aes(x=date, y=shift( log10(deathIncrease)+1.2, 7, type
 
 ```
 
+Модель с распределенными лагами и учетом дней недели.  
+
 ```{r}
-ggplot( us_daily_summary, aes(x=date, y=(positive- shift(positive, 7))/(totalTestResults- shift(totalTestResults, 7))))+
+us_daily_summary[ , weekday := as.factor(wday(date))]
+data2 <- us_daily_summary[ date >= make_date(2020,3,1 )]
+lmdlag <- lm(log(deathIncrease) ~ shift( log(positiveIncrease),5) + 
+               shift( log(positiveIncrease),7)+ shift(log(positiveIncrease), 10) + shift(log(positiveIncrease), 14)+ weekday, data=data2)
+summary( lmdlag)
+
+anova(lmdlag)
+
+```
+  
+```{r}
+plot(resid(lmdlag), type="l")
+abline(h=0, lty=2)
+```
+
+```{r}
+lmdlag.7d <- lm(log(deathIncrease) ~ shift( log(positiveIncrease),7) + weekday, data=data2)
+summary( lmdlag.7d)
+
+anova(lmdlag.7d)
+
+```
+
+У остатков есть явная зависимость от времени.
+```{r}
+plot(resid(lmdlag.7d), type="l")
+abline(h=0, lty=2)
+
+```
+Вывод: DLM предпочитает модель с лагом 5-7 дней, но она описыает взаимное поведение кривых только в нулевом приближении. Со временем зависимость несколько меняется.
+  
+
+
+Q: Какая доля эффективных тестов (т.е. тестов, выявивших зараженных) от числа проведенных тестов)? 
+
+```{r}
+ggplot( us_daily_summary[date > make_date(2020,03,01)], aes(x=date, y=(positive- shift(positive, 7))/(totalTestResults- shift(totalTestResults, 7))))+
           geom_path(colour="red") + ylab("Share of positive results")+
   ggtitle( "US. Share of positive tests results (7d moving average)")
 
 ```
 
+Q: Какая летальность видуса (CFR) в США?
 ```{r}
 data1 <- us_daily_summary[date>make_date(2020,03,13)]
 
@@ -80,16 +127,5 @@ data1 <- us_daily_summary[date>make_date(2020,03,13)]
 ```{r}
 ggplot( data1, aes(x=date, y=deathIncrease/(shift(positiveIncrease, 7, type="lead")+0.001), color="D"))+ geom_path() + ggtitle("US Ratio Death (7d shifted)/New Cases") + geom_smooth()
 ```
-
-
-Определение лага
-```{r}
-lmdlag <- lm(deathIncrease ~ 0 + shift( positiveIncrease,5) + 
-               shift( positiveIncrease,7)+ shift(positiveIncrease, 10), data=data1)
-
-summary( lmdlag)
-
-anova(lmdlag)
-
-```
+Около 7%. 
 

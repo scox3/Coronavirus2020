@@ -1,10 +1,10 @@
 ---
 title: "COVID in Мoscow"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
-  word_document: default
 ---
 
 ```{r message=FALSE, warning=FALSE}
@@ -29,16 +29,18 @@ library(purrr)
 
 library(strucchange)
 library(segmented)
+
+library(xlsx)
 ```
 
 
 
 ```{r }
 CovidMoscowDB <- read_excel("data/CovidMoscow.xlsx",
-col_types = c("date", "numeric", "numeric", "numeric"))
+col_types = c("numeric", "date", "numeric", "numeric", "numeric"))
 CovidMoscowDB <-as.data.table(CovidMoscowDB)
 CovidMoscowDB[ ,date:= as.Date(date)]
-colnames( CovidMoscowDB) <- c("date", "newCases", "TotalCases", "weekday")
+colnames( CovidMoscowDB) <- c("num", "date", "newCases", "TotalCases", "weekday")
 
 source("parse_rospotrebnadzor_pages.R")
 CovidMoscowDB.1 <- update_CovidMoscowDB(CovidMoscowDB)
@@ -72,7 +74,7 @@ CovidMoscow[ , days_from_apr2 := as.Date(date) - as.Date("2020/04/02")]
 ```
 
 
-##Общий фит
+##Общий тренд 
 
 ```{r}
 ggplot( CovidMoscow, aes(x=date,y=newCases))+geom_point()+geom_path()+scale_y_log10()+geom_smooth(aes(color="lowess"), size=1.5)+ggtitle("New daily COVID cases in Moscow (log10 scale)")+geom_path(aes(y=ma(newCases, order=3), color="MA(3)"), size=1)
@@ -95,7 +97,7 @@ summary(lm_msk0)
 ```{r}
 fit_n_segments <- function(npt, lm_msk0, CovidMoscow) {
 
-  start_psi <- c(13, 30, 45, 48, 55)
+  start_psi <- c(13, 30, 45, 48, 55, 67)
   
   if( npt > length(start_psi) ) return(NULL)
   
@@ -139,7 +141,7 @@ plot_npsi_resid <- function( npsi, seg) {
 ```
 
 ```{r}
-npsi_max <- 5
+npsi_max <- 6
 seg_fit <- vector( "list", npsi_max)
 for( i in 1:npsi_max ) {
   seg_fit[[i]] <- fit_n_segments( i, lm_msk0, CovidMoscow )
@@ -149,7 +151,7 @@ for( i in 1:npsi_max ) {
 ```
 
 ```{r}
-for( i in 1:5 ) {
+for( i in 1:npsi_max ) {
   gg <- plot_npsi_fit( i, seg_fit[[i]],  CovidMoscow )
 
   #Продолжение тренда начала апреля
