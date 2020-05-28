@@ -1,10 +1,10 @@
 ---
 title: "COVID in Мoscow"
 output:
-  word_document: default
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r message=FALSE, warning=FALSE}
@@ -45,9 +45,11 @@ colnames( CovidMoscowDB) <- c("num", "date", "newCases", "TotalCases", "weekday"
 source("parse_rospotrebnadzor_pages.R")
 CovidMoscowDB.1 <- update_CovidMoscowDB(CovidMoscowDB)
 if( dim(CovidMoscowDB.1)[1] > dim(CovidMoscowDB)[1]) {
-  write.xlsx(CovidMoscowDB.1, file="data/CovidMoscow.xlsx")
+  #some bug - adds num column all by itself
+  write.xlsx(CovidMoscowDB.1[ , mget(colnames(CovidMoscowDB.1)[-1])], file="data/CovidMoscow.xlsx")
   CovidMoscowDB <- CovidMoscowDB.1
   print( "CovidMoscowDB updated")
+  print( setdiff( CovidMoscow$date, CovidMoscowDB.1$date))
 
 } else {
   print( "CovidMoscowDB was NOT updated")
