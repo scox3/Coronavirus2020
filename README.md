@@ -1,4 +1,5 @@
 # Coronavirus2020
+Всякие игры с датасетами по короновирусу
 Plays with coronovirus datasets. Models related to COVID-19 outbreak 
 
 
