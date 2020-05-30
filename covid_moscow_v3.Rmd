@@ -48,10 +48,12 @@ CovidMoscowDB.1 <- update_CovidMoscowDB(CovidMoscowDB)
 if( dim(CovidMoscowDB.1)[1] > dim(CovidMoscowDB)[1]) {
   #some bug - adds num column all by itself
   write.xlsx(CovidMoscowDB.1[ , mget(colnames(CovidMoscowDB.1)[-1])], file="data/CovidMoscow.xlsx")
+  update1 <- setdiff( CovidMoscow$date, CovidMoscowDB.1$date)
+  
   CovidMoscowDB <- CovidMoscowDB.1
   setkey( CovidMoscowDB, date)
   print( "CovidMoscowDB updated")
-  print( setdiff( CovidMoscow$date, CovidMoscowDB.1$date))
+  print( update1)
 
 } else {
   print( "CovidMoscowDB was NOT updated")
