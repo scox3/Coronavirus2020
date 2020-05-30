@@ -36,7 +36,7 @@ library(readr)
 ```
 
 ```{r}
-# https://covidtracking.com/api
+# data source  https://covidtracking.com/api
 us_daily <- read_csv("data/us-daily_20200525.csv",
                       col_types = cols(date = col_date(format = "%Y%m%d")))
 

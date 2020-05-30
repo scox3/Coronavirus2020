@@ -41,6 +41,7 @@ col_types = c("numeric", "date", "numeric", "numeric", "numeric"))
 CovidMoscowDB <-as.data.table(CovidMoscowDB)
 CovidMoscowDB[ ,date:= as.Date(date)]
 colnames( CovidMoscowDB) <- c("num", "date", "newCases", "TotalCases", "weekday")
+setkey( CovidMoscowDB, date)
 
 source("parse_rospotrebnadzor_pages.R")
 CovidMoscowDB.1 <- update_CovidMoscowDB(CovidMoscowDB)
@@ -48,6 +49,7 @@ if( dim(CovidMoscowDB.1)[1] > dim(CovidMoscowDB)[1]) {
   #some bug - adds num column all by itself
   write.xlsx(CovidMoscowDB.1[ , mget(colnames(CovidMoscowDB.1)[-1])], file="data/CovidMoscow.xlsx")
   CovidMoscowDB <- CovidMoscowDB.1
+  setkey( CovidMoscowDB, date)
   print( "CovidMoscowDB updated")
   print( setdiff( CovidMoscow$date, CovidMoscowDB.1$date))
 

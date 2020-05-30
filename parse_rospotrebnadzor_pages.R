@@ -2,16 +2,25 @@
 
 library(rvest)
 library(purrr)
+library(stringi)
 
 get_rpn_covid_updates_list <- function() {
   html1 <- read_html("https://www.rospotrebnadzor.ru/region/rss/rss.php")
 #  html1 %>% xml_structure()
   
+  # enc1 <- html1%>% html_nodes("meta") %>% html_attr("content") %>% str_subset("charset") %>% str_subset("windows-1251")
+  # if( length(enc1) != 0 ) {
+  #   #windows encoding
+  #     html1 <- read_html("https://www.rospotrebnadzor.ru/region/rss/rss.php",  encoding = "windows-1251")
+  #   
+  # }
+  
   a1 <- html1%>% html_nodes(".news-item") 
-  
-  idx <- a1 %>% html_text() %>% str_detect("COVID-2019")
-  
-  if( length(idx) == 0 ) print("Nothing retrieved!")
+
+  idx <- a1 %>% html_text() %>% stri_trans_general("russian-latin/bgn") %>% 
+    str_detect("O podtverzhdennykh sluchayakh novoy koronavirusnoy infektsii COVID-2019")
+
+    if( length(idx) == 0 ) print("Nothing retrieved!")
   
   covid_rss_links <- data.table( dates = a1[idx] %>% 
                                  html_nodes( ".news-date-time" ) %>% 
@@ -42,7 +51,7 @@ get_rpn_covid_msk_update <- function( href ) {
   #<div>1. Москва - 2560</div>
   dt1 <- data.table( date = b.date,
                      num = b2 %>% str_extract("^\\d+\\. ") %>% str_remove("\\. ") %>% as.numeric,
-                    val = b2 %>% str_extract("- .+$") %>% str_remove("- ") %>% as.numeric,
+                    val = b2 %>% str_extract("- .+$") %>% str_remove("- ") %>% str_remove(" ") %>% as.numeric,
                     name = b2 %>% str_extract("\\. .+ -") %>%  str_remove("^\\. ") %>% str_remove(" -") )
   return(copy(dt1))
   
