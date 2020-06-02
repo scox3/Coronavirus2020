@@ -83,12 +83,12 @@ CovidMoscow[ , days_from_apr2 := as.Date(date) - as.Date("2020/04/02")]
 ##Общий тренд 
 
 ```{r}
-ggplot( CovidMoscow, aes(x=date,y=newCases))+geom_point()+geom_path()+scale_y_log10()+geom_smooth(aes(color="lowess"), size=1.5)+ggtitle("New daily COVID cases in Moscow (log10 scale)")+geom_path(aes(y=ma(newCases, order=3), color="MA(3)"), size=1)
+ggplot( CovidMoscow, aes(x=date,y=newCases))+geom_point()+geom_path()+scale_y_log10()+geom_smooth(aes(color="lowess"), size=1.5, span=1/4)+ggtitle("New daily COVID cases in Moscow (log10 scale)")+geom_path(aes(y=ma(newCases, order=3), color="MA(3)"), size=1)
 ```
 
 
 ```{r}
-ggplot( CovidMoscow, aes(x=date,y=newCases))+geom_point()+geom_path()+geom_smooth()+ggtitle("New daily COVID cases in Moscow")+geom_path(aes(y=ma(newCases, order=3), color="MA(3)"), size=1)
+ggplot( CovidMoscow, aes(x=date,y=newCases))+geom_point()+geom_path()+geom_smooth(span=1/4)+ggtitle("New daily COVID cases in Moscow")+geom_path(aes(y=ma(newCases, order=3), color="MA(3)"), size=1)
 ```
 
 
@@ -207,18 +207,18 @@ ggplot( CovidMoscow, aes(x=date,y=newCases, color="Data"))+geom_point()+geom_pat
 
 #Дифференциалы
 ```{r}
-ggplot( CovidMoscow, aes(x=date,y=c(0, diff(log(newCases)))))+geom_point()+geom_path()+geom_smooth()+ggtitle("dlog(New daily COVID cases in Moscow)")
+ggplot( CovidMoscow, aes(x=date,y=c(0, diff(log(newCases)))))+geom_point()+geom_path()+geom_smooth()+ggtitle("diff_log(New daily COVID cases in Moscow)")
 ```
 
 
 ```{r}
-ggplot( CovidMoscow, aes(x=date,y=log(newCases)-shift(log(newCases), 7)))+geom_point()+geom_path()+geom_smooth()+ggtitle("dlog(New daily COVID cases in Moscow), 7d lag")
+ggplot( CovidMoscow, aes(x=date,y=log(newCases)-shift(log(newCases), 7)))+geom_point()+geom_path()+geom_smooth(span=1/4)+ggtitle("diff_7d(log(New daily COVID cases in Moscow))")
 ```
 
 
 
 ```{r}
-ggplot( CovidMoscow, aes(x=date,y=log(newCases)-shift(log(newCases), 14)))+geom_point()+geom_path()+geom_smooth()+ggtitle("dlog(New daily COVID cases in Moscow), 14d lag")
+ggplot( CovidMoscow, aes(x=date,y=log(newCases)-shift(log(newCases), 14)))+geom_point()+geom_path()+geom_smooth(span=1/4)+ggtitle("diff_14d_log(New daily COVID cases in Moscow), 14d lag")
 ```
 
 
@@ -268,7 +268,7 @@ ggplot(apple_msk[as.Date(date) >= as.Date("2020/03/01")], aes(x=as.Date(date), y
 ```{r}
 CovidMoscow[ , rsum := cumsum(newCases)][ ,rsum := rsum - shift(rsum,12)]
 
-ggplot( CovidMoscow, aes(x=date,y=rsum))+geom_point()+geom_path()+scale_y_log10()+ggtitle("14d sum daily COVID-19 cases in Moscow (aka active cases)")+geom_smooth()
+ggplot( CovidMoscow, aes(x=date,y=rsum))+geom_point()+geom_path()+scale_y_log10()+ggtitle("14d sum daily COVID-19 cases in Moscow (aka active cases)")
 
 ```
 
