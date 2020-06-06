@@ -1,5 +1,5 @@
 ---
-title: "COVID in Мoscow"
+title: "COVID in Мoscow (status update)"
 output:
   html_document:
     df_print: paged
@@ -33,7 +33,7 @@ library(segmented)
 library(xlsx)
 ```
 
-
+[Репозиторий кода](https://github.com/scox3/Coronavirus2020.git)
 
 ```{r }
 CovidMoscowDB <- read_excel("data/CovidMoscow.xlsx",
@@ -49,11 +49,10 @@ if( dim(CovidMoscowDB.1)[1] > dim(CovidMoscowDB)[1]) {
   #some bug - adds num column all by itself
   write.xlsx(CovidMoscowDB.1[ , mget(colnames(CovidMoscowDB.1)[-1])], file="data/CovidMoscow.xlsx")
   update1 <- setdiff( CovidMoscowDB$date, CovidMoscowDB.1$date)
+  print( paste( "New data in CovidMoscowDB: ", update1))
   
   CovidMoscowDB <- CovidMoscowDB.1
   setkey( CovidMoscowDB, date)
-  print( "CovidMoscowDB updated")
-  print( update1)
 
 } else {
   print( "CovidMoscowDB was NOT updated")
@@ -184,7 +183,7 @@ for( i in 1:npsi_max ) {
     cat(paste0( "\n--------------  N. Breaking points = ", i, " =-------------\n"))
     cat("Slopes\n")
     print( slope(seg_fit[[i]]))
-    cat("Doubling of cases:\n")
+    cat("Doubling of cases estimate, days:\n")
     print( log(2)/slope(seg_fit[[i]])$days_from_beg[,1] )
 }
 ```
